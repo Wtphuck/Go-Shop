@@ -770,12 +770,14 @@
       <div class="brand-tagline">Plan · Shop · Save</div>
     </div>
   </div>
-  <div class="nav">
-    <button data-page="planPage" class="active">🍽️ Meals</button>
-    <button data-page="groceryPage">🛒 Grocery</button>
-    <button data-page="costPage">💲 Cost</button>
-    <button data-page="recipesPage">➕ Recipes</button>
-  </div>
+ <div class="nav">
+  <button data-page="planPage" class="active">🍽️ Meals</button>
+  <button data-page="groceryPage">🛒 Grocery</button>
+  <button data-page="shoppingPage">✅ Shopping</button>
+  <button data-page="costPage">💲 Cost</button>
+  <button data-page="recipesPage">➕ Recipes</button>
+</div>
+
   <button id="themeToggleBtn" class="theme-toggle-btn">
     <span>🌙</span>
     <span>Dark mode</span>
@@ -788,21 +790,28 @@
     <h1>Weekly Meal Plan</h1>
     <p>Breakfast, lunch & dinner for 7 days, no repeats for ~30 days.</p>
 
-    <div class="controls">
-      <div class="controls-group">
-        <button id="generateBtn" class="main">Generate 7-Day Plan</button>
-        <button id="clearHistoryBtn" class="secondary">Clear Meal History</button>
-      </div>
-      <div class="controls-group">
-        <label for="dietSelect">Diet:</label>
-        <select id="dietSelect"></select>
-      </div>
-      <div class="controls-group">
-        <button id="goGroceryBtn" class="secondary">Go to Grocery List</button>
-        <button id="goRecipesBtn" class="secondary">Go to Add Recipes</button>
-      </div>
-      <span class="note">Diet, history, theme, and recipes are saved in this browser.</span>
-    </div>
+   <div class="controls">
+  <!-- Diet FIRST -->
+  <div class="controls-group">
+    <label for="dietSelect">Diet:</label>
+    <select id="dietSelect"></select>
+  </div>
+
+  <!-- Then generate / clear -->
+  <div class="controls-group">
+    <button id="generateBtn" class="main">Generate 7-Day Plan</button>
+    <button id="clearHistoryBtn" class="secondary">Clear Meal History</button>
+  </div>
+
+  <!-- Quick links -->
+  <div class="controls-group">
+    <button id="goGroceryBtn" class="secondary">Go to Grocery List</button>
+    <button id="goRecipesBtn" class="secondary">Go to Add Recipes</button>
+  </div>
+
+  <span class="note">Diet, history, theme, and recipes are saved in this browser.</span>
+</div>
+
 
     <h2>This Week's Meals</h2>
     <div id="planGrid" class="grid"></div>
@@ -832,17 +841,26 @@
         <tbody id="groceryBody"></tbody>
       </table>
     </div>
+      <!-- PAGE: SHOPPING MODE -->
+  <div id="shoppingPage" class="page">
+    <h1>Shopping Mode</h1>
+    <p>Use this checklist while you're in the store.</p>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Grocery Checklist</h2>
+      <p class="note">
+        Generate a plan first so we have a grocery list. Checking items off here doesn't affect your plan;
+        it's just for you while you shop.
+      </p>
+      <div id="shoppingList">
+        <p class="note">Generate a plan to enable shopping mode.</p>
+      </div>
+    </div>
+  </div>
+
 
     <div style="margin-top:0.75rem;">
       <button id="goCostPageBtn" class="secondary">Go to Cost Estimate</button>
-    </div>
-
-    <h2>Shopping Mode</h2>
-    <p class="note">
-      Use this simple checklist while you're in the store. Checking items off doesn't change your plan.
-    </p>
-    <div id="shoppingList" class="note">
-      Generate a plan to enable shopping mode.
     </div>
   </div>
 
@@ -2003,5 +2021,6 @@
 </script>
 </body>
 </html>
+
 
 
