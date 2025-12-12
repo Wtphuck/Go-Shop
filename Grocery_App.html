@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Go-Shop · Smart Weekly Meal Planner</title>
+  <style>
+    :root {
+      /* default (dark) theme values */
+      --bg: #050816;
+      --bg-soft: #0b1020;
+      --card: #0f172a;
+      --card-soft: #111827;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.18);
+      --accent-strong: #4ade80;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --danger: #f97373;
+    }
+
+    /* Light theme overrides */
+    body.light-theme {
+      --bg: #f5f5f5;
+      --bg-soft: #ffffff;
+      --card: #ffffff;
+      --card-soft: #f3f4f6;
+      --accent: #16a34a;
+      --accent-soft: rgba(22, 163, 74, 0.12);
+      --accent-strong: #15803d;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border-subtle: rgba(148, 163, 184, 0.6);
+      --danger: #b91c1c;
+    }
+
+    /* Dark theme class (explicit) */
+    body.dark-theme {
+      --bg: #050816;
+      --bg-soft: #0b1020;
+      --card: #0f172a;
+      --card-soft: #111827;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.18);
+      --accent-strong: #4ade80;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --danger: #f97373;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.18), transparent 55%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.75rem 1.25rem 2.5rem;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 650;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+      color: var(--text-main);
+    }
+
+    p {
+      margin: 0.2rem 0 0.9rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Top bar with brand + nav + theme toggle */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(16px);
+      background: linear-gradient(
+        to right,
+        rgba(15, 23, 42, 0.96),
+        rgba(15, 23, 42, 0.9)
+      );
+      color: white;
+      padding: 0.6rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #bbf7d0, #22c55e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #022c22;
+      font-size: 0.9rem;
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(34, 197, 94, 0.6);
+    }
+
+    body.light-theme .brand-mark {
+      box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .brand-tagline {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #a5b4fc;
+    }
+
+    .nav {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+
+    .nav button {
+      border: 1px solid transparent;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      background: transparent;
+      color: #cbd5f5;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        transform 0.1s ease,
+        border-color 0.15s ease;
+    }
+
+    .nav button::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: transparent;
+    }
+
+    .nav button.active {
+      background: var(--accent-soft);
+      color: white;
+      border-color: rgba(34, 197, 94, 0.7);
+      transform: translateY(-1px);
+    }
+
+    .nav button.active::before {
+      background: var(--accent);
+    }
+
+    .nav button:hover {
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    /* Theme toggle button */
+    .theme-toggle-btn {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.08s ease,
+        box-shadow 0.12s ease;
+      white-space: nowrap;
+    }
+
+    .theme-toggle-btn span {
+      font-size: 0.9rem;
+    }
+
+    .theme-toggle-btn:hover {
+      background: #020617;
+      border-color: rgba(148, 163, 184, 0.8);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.6);
+    }
+
+    .theme-toggle-btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .controls-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    button.main,
+    button.secondary {
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition:
+        transform 0.08s ease,
+        box-shadow 0.12s ease,
+        background 0.12s ease,
+        border-color 0.12s ease;
+      white-space: nowrap;
+    }
+
+    button.main {
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #022c22;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.35);
+    }
+
+    button.secondary {
+      background: rgba(15, 23, 42, 0.92);
+      color: #e5e7eb;
+      border-color: var(--border-subtle);
+    }
+
+    body.light-theme button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button.main:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 40px rgba(34, 197, 94, 0.45);
+    }
+
+    button.secondary:hover {
+      background: #020617;
+      border-color: rgba(148, 163, 184, 0.8);
+    }
+
+    body.light-theme button.secondary:hover {
+      background: #d1d5db;
+    }
+
+    button.main:active,
+    button.secondary:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Pages with slide/fade transitions */
+    .page {
+      display: none;
+      opacity: 0;
+      transform: translateX(14px);
+      transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    }
+
+    .page.active {
+      display: block;
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Plan grid + cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: radial-gradient(
+          circle at top left,
+          rgba(34, 197, 94, 0.08),
+          transparent 55%
+        )
+        var(--card);
+      border-radius: 0.9rem;
+      padding: 0.95rem 0.95rem 0.9rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body.light-theme .card {
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.5);
+    }
+
+    body.light-theme .card-header {
+      border-bottom-color: rgba(209, 213, 219, 0.9);
+    }
+
+    .card-header span:first-child {
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .meal-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-top: 0.5rem;
+      padding-top: 0.4rem;
+      border-top: 1px dashed rgba(51, 65, 85, 0.8);
+    }
+
+    body.light-theme .meal-row {
+      border-top-color: rgba(209, 213, 219, 0.9);
+    }
+
+    .meal-row:first-of-type {
+      border-top-style: solid;
+    }
+
+    .meal-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .meal-label {
+      font-weight: 600;
+      color: var(--text-main);
+      text-transform: capitalize;
+      letter-spacing: 0.02em;
+    }
+
+    .meal-name {
+      font-size: 0.86rem;
+      color: var(--text-main);
+    }
+
+    .pill {
+      display: inline-flex;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--text-muted);
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      margin-right: 0.2rem;
+      margin-top: 0.15rem;
+    }
+
+    body.light-theme .pill {
+      background: #e5e7eb;
+      color: #374151;
+      border-color: rgba(148, 163, 184, 0.8);
+    }
+
+    .swap-row {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 0.25rem;
+    }
+
+    select {
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      font-size: 0.8rem;
+      background: #020617;
+      color: #e5e7eb;
+      outline: none;
+      max-width: 100%;
+    }
+
+    body.light-theme select {
+      background: #ffffff;
+      color: #111827;
+      border-color: rgba(209, 213, 219, 1);
+    }
+
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+    }
+
+    /* Tables (Grocery & Cost & Nutrition) */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 0.9rem;
+      overflow: hidden;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+    }
+
+    body.light-theme table {
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+    }
+
+    th,
+    td {
+      padding: 0.55rem 0.8rem;
+      font-size: 0.85rem;
+    }
+
+    th {
+      text-align: left;
+      background: var(--card-soft);
+      color: var(--text-main);
+      border-bottom: 1px solid var(--border-subtle);
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    td {
+      color: var(--text-main);
+      border-bottom: 1px solid rgba(30, 41, 59, 0.9);
+    }
+
+    body.light-theme td {
+      border-bottom-color: rgba(229, 231, 235, 1);
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    body.light-theme tr:nth-child(even) td {
+      background: #f9fafb;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .total {
+      margin-top: 0.75rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--accent-strong);
+    }
+
+    /* Recipe builder */
+    .builder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.55rem;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      font-size: 0.85rem;
+      background: #020617;
+      color: #e5e7eb;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    body.light-theme input[type="text"],
+    body.light-theme input[type="number"] {
+      background: #ffffff;
+      color: #111827;
+      border-color: rgba(209, 213, 219, 1);
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
+    }
+
+    ul {
+      padding-left: 1.1rem;
+      margin: 0.6rem 0;
+    }
+
+    .ingredient-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      padding: 0.2rem 0;
+      border-bottom: 1px dashed rgba(51, 65, 85, 0.8);
+    }
+
+    body.light-theme .ingredient-item {
+      border-bottom-color: rgba(209, 213, 219, 0.9);
+    }
+
+    .ingredient-item:last-child {
+      border-bottom: none;
+    }
+
+    .ingredient-item button {
+      padding: 0.2rem 0.55rem;
+      font-size: 0.75rem;
+      box-shadow: none;
+      background: rgba(30, 41, 59, 0.95);
+    }
+
+    body.light-theme .ingredient-item button {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .card h3 {
+      margin-top: 0.9rem;
+      margin-bottom: 0.1rem;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    /* Cost header */
+    .cost-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin: 0.75rem 0 0.9rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: 0.75rem;
+      background: var(--card-soft);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Shopping mode list */
+    .shopping-list {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 0.5rem;
+    }
+
+    .shopping-list li {
+      padding: 0.25rem 0;
+      font-size: 0.85rem;
+    }
+
+    .shopping-list label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+    }
+
+    .shopping-list input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    .shopping-list label span {
+      transition: opacity 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .shopping-list input[type="checkbox"]:checked + span {
+      opacity: 0.55;
+      text-decoration: line-through;
+      text-decoration-thickness: 1.5px;
+    }
+
+    /* Small screen tweaks */
+    @media (max-width: 900px) {
+      .topbar {
+        flex-wrap: wrap;
+      }
+      .nav {
+        order: 3;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .container {
+        padding-inline: 1rem;
+      }
+      .topbar {
+        padding-inline: 0.8rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .nav {
+        justify-content: center;
+      }
+      h1 {
+        font-size: 1.45rem;
+      }
+      button.main,
+      button.secondary {
+        width: 100%;
+        justify-content: center;
+      }
+      .controls {
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">GS</div>
+    <div class="brand-text">
+      <div class="brand-name">Go-Shop</div>
+      <div class="brand-tagline">Plan · Shop · Save</div>
+    </div>
+  </div>
+  <div class="nav">
+    <button data-page="planPage" class="active">🍽️ Meals</button>
+    <button data-page="groceryPage">🛒 Grocery</button>
+    <button data-page="costPage">💲 Cost</button>
+    <button data-page="recipesPage">➕ Recipes</button>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle-btn">
+    <span>🌙</span>
+    <span>Dark mode</span>
+  </button>
+</div>
+
+<div class="container">
+  <!-- PAGE: PLAN -->
+  <div id="planPage" class="page active">
+    <h1>Weekly Meal Plan</h1>
+    <p>Breakfast, lunch & dinner for 7 days, no repeats for ~30 days.</p>
+
+    <div class="controls">
+      <div class="controls-group">
+        <button id="generateBtn" class="main">Generate 7-Day Plan</button>
+        <button id="clearHistoryBtn" class="secondary">Clear Meal History</button>
+      </div>
+      <div class="controls-group">
+        <label for="dietSelect">Diet:</label>
+        <select id="dietSelect"></select>
+      </div>
+      <div class="controls-group">
+        <button id="goGroceryBtn" class="secondary">Go to Grocery List</button>
+        <button id="goRecipesBtn" class="secondary">Go to Add Recipes</button>
+      </div>
+      <span class="note">Diet, history, theme, and recipes are saved in this browser.</span>
+    </div>
+
+    <h2>This Week's Meals</h2>
+    <div id="planGrid" class="grid"></div>
+
+    <div id="nutritionSection">
+      <h2>Weekly Nutrition (Estimated)</h2>
+      <div id="nutritionBody" class="note">
+        Generate a plan to see calories and macros.
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: GROCERY LIST -->
+  <div id="groceryPage" class="page">
+    <h1>Grocery List</h1>
+    <p>Combined ingredients for all breakfasts, lunches, and dinners this week.</p>
+
+    <div id="grocerySection">
+      <table id="groceryTable">
+        <thead>
+        <tr>
+          <th>Ingredient</th>
+          <th>Amount</th>
+          <th>Unit</th>
+        </tr>
+        </thead>
+        <tbody id="groceryBody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:0.75rem;">
+      <button id="goCostPageBtn" class="secondary">Go to Cost Estimate</button>
+    </div>
+
+    <h2>Shopping Mode</h2>
+    <p class="note">
+      Use this simple checklist while you're in the store. Checking items off doesn't change your plan.
+    </p>
+    <div id="shoppingList" class="note">
+      Generate a plan to enable shopping mode.
+    </div>
+  </div>
+
+  <!-- PAGE: COST ESTIMATE -->
+  <div id="costPage" class="page">
+    <h1>Cost Estimate</h1>
+    <p>Choose your store and estimate how much this grocery list will cost.</p>
+
+    <div class="note">
+      Make sure you’ve generated a plan on the Meals page first.
+    </div>
+
+    <div class="cost-header">
+      <label for="storeSelect">Store:</label>
+      <select id="storeSelect"></select>
+      <button id="estimateBtn" class="main">Estimate Cost</button>
+      <span id="estimateSummary" class="total"></span>
+    </div>
+    <div id="costBreakdown" class="note">
+      No estimate yet. Choose a store and click "Estimate Cost."
+    </div>
+
+    <h2 style="margin-top:2rem;">Text the Grocery List to Your Phone</h2>
+    <p class="note">
+      On your phone, this button will open your texting app with the list filled in.
+      You choose the contact and hit send. (On a computer it may not do much.)
+    </p>
+    <div class="controls" style="margin-top:0.75rem;">
+      <button id="smsBtn" class="secondary">Open in Messages / SMS</button>
+      <button id="copyListBtn" class="secondary">Copy List to Clipboard</button>
+    </div>
+  </div>
+
+  <!-- PAGE: RECIPES -->
+  <div id="recipesPage" class="page">
+    <h1>Add Your Own Recipe</h1>
+    <p>Custom recipes will be used in future weekly plans and swaps.</p>
+
+    <div class="card">
+      <div class="builder-grid">
+        <div>
+          <label for="recipeNameInput">Recipe name</label>
+          <input id="recipeNameInput" type="text" placeholder="e.g. Ham & Egg Breakfast Wrap" />
+        </div>
+        <div>
+          <label for="recipeTagsInput">Tags (comma separated)</label>
+          <input id="recipeTagsInput" type="text" placeholder="e.g. breakfast, quick, high-protein" />
+        </div>
+        <div>
+          <label for="mealTypeSelect">Meal type</label>
+          <select id="mealTypeSelect">
+            <option value="any">Any</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner" selected>Dinner</option>
+          </select>
+        </div>
+        <div>
+          <label for="recipeDietSelect">Diet</label>
+          <select id="recipeDietSelect">
+            <option value="any" selected>No preference</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="keto">Keto</option>
+            <option value="low_carb">Low carb</option>
+            <option value="gluten_free">Gluten-free</option>
+          </select>
+        </div>
+      </div>
+
+      <h3 style="margin-top:1rem;font-size:1rem;">Ingredients</h3>
+      <div class="builder-grid">
+        <div>
+          <label for="ingredientNameInput">Ingredient name</label>
+          <input id="ingredientNameInput" type="text" placeholder="e.g. Eggs" />
+        </div>
+        <div>
+          <label for="ingredientAmountInput">Amount</label>
+          <input id="ingredientAmountInput" type="number" step="0.01" placeholder="e.g. 4" />
+        </div>
+        <div>
+          <label for="ingredientUnitInput">Unit</label>
+          <input id="ingredientUnitInput" type="text" placeholder="g, ml, piece, jar..." />
+        </div>
+      </div>
+      <div style="margin-top:0.5rem;">
+        <button id="addIngredientBtn" type="button" class="secondary">Add ingredient to recipe</button>
+      </div>
+
+      <ul id="ingredientDraftList"></ul>
+
+      <h3 style="margin-top:0.5rem;font-size:1rem;">Nutrition (per serving)</h3>
+      <div class="builder-grid">
+        <div>
+          <label for="caloriesInput">Calories</label>
+          <input id="caloriesInput" type="number" step="1" placeholder="e.g. 450" />
+        </div>
+        <div>
+          <label for="proteinInput">Protein (g)</label>
+          <input id="proteinInput" type="number" step="0.1" placeholder="e.g. 30" />
+        </div>
+        <div>
+          <label for="carbsInput">Carbs (g)</label>
+          <input id="carbsInput" type="number" step="0.1" placeholder="e.g. 25" />
+        </div>
+        <div>
+          <label for="fatInput">Fat (g)</label>
+          <input id="fatInput" type="number" step="0.1" placeholder="e.g. 18" />
+        </div>
+      </div>
+
+      <button id="saveRecipeBtn" type="button" class="main" style="margin-top:0.8rem;">Save Recipe</button>
+      <div id="userRecipesList" class="note" style="margin-top:0.5rem;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ======== THEME ========
+  const THEME_KEY = "mealPlanner_theme";
+
+  function applyTheme(theme) {
+    const body = document.body;
+    body.classList.remove("light-theme", "dark-theme");
+
+    const normalized = theme === "light" ? "light" : "dark";
+    body.classList.add(normalized + "-theme");
+
+    const btn = document.getElementById("themeToggleBtn");
+    if (btn) {
+      if (normalized === "light") {
+        btn.innerHTML = '<span>🌙</span><span>Dark mode</span>';
+      } else {
+        btn.innerHTML = '<span>☀️</span><span>Light mode</span>';
+      }
+    }
+
+    localStorage.setItem(THEME_KEY, normalized);
+  }
+
+  function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY) || "dark";
+    applyTheme(saved);
+  }
+
+  // ======== DIETS ========
+  const DIETS = [
+    { id: "any", label: "No preference" },
+    { id: "vegetarian", label: "Vegetarian" },
+    { id: "vegan", label: "Vegan" },
+    { id: "keto", label: "Keto" },
+    { id: "low_carb", label: "Low carb" },
+    { id: "gluten_free", label: "Gluten-free" }
+  ];
+
+  const DIET_KEY = "mealPlanner_diet";
+
+  // ======== BASE RECIPES ========
+  // dietTags: which diets this recipe is compatible with
+  // nutrition: approximate per-serving macros
+  const RECIPES = [
+    {
+      id: "chicken_alfredo",
+      name: "Chicken Alfredo",
+      mealType: "dinner",
+      tags: ["dinner", "pasta"],
+      dietTags: [],
+      nutrition: { calories: 650, protein: 40, carbs: 55, fat: 28 },
+      ingredients: [
+        { ingredientId: "chicken_breast", name: "Chicken Breast", amount: 500, unit: "g" },
+        { ingredientId: "fettuccine", name: "Fettuccine Pasta", amount: 300, unit: "g" },
+        { ingredientId: "alfredo_sauce", name: "Alfredo Sauce", amount: 1, unit: "jar" },
+        { ingredientId: "parmesan", name: "Parmesan Cheese", amount: 50, unit: "g" }
+      ]
+    },
+    {
+      id: "beef_tacos",
+      name: "Beef Tacos",
+      mealType: "dinner",
+      tags: ["dinner", "mexican"],
+      dietTags: [],
+      nutrition: { calories: 550, protein: 28, carbs: 45, fat: 26 },
+      ingredients: [
+        { ingredientId: "ground_beef", name: "Ground Beef", amount: 500, unit: "g" },
+        { ingredientId: "taco_shells", name: "Taco Shells", amount: 10, unit: "piece" },
+        { ingredientId: "lettuce", name: "Lettuce", amount: 100, unit: "g" },
+        { ingredientId: "cheddar", name: "Cheddar Cheese", amount: 80, unit: "g" },
+        { ingredientId: "salsa", name: "Salsa", amount: 1, unit: "jar" }
+      ]
+    },
+    {
+      id: "stir_fry",
+      name: "Chicken Veggie Stir Fry",
+      mealType: "dinner",
+      tags: ["dinner", "asian"],
+      dietTags: [],
+      nutrition: { calories: 520, protein: 35, carbs: 55, fat: 14 },
+      ingredients: [
+        { ingredientId: "chicken_breast", name: "Chicken Breast", amount: 400, unit: "g" },
+        { ingredientId: "mixed_veggies", name: "Mixed Stir Fry Veggies", amount: 300, unit: "g" },
+        { ingredientId: "soy_sauce", name: "Soy Sauce", amount: 50, unit: "ml" },
+        { ingredientId: "rice", name: "Rice", amount: 250, unit: "g" }
+      ]
+    },
+    {
+      id: "spaghetti_bolognese",
+      name: "Spaghetti Bolognese",
+      mealType: "dinner",
+      tags: ["dinner", "pasta"],
+      dietTags: [],
+      nutrition: { calories: 600, protein: 32, carbs: 70, fat: 18 },
+      ingredients: [
+        { ingredientId: "ground_beef", name: "Ground Beef", amount: 400, unit: "g" },
+        { ingredientId: "spaghetti", name: "Spaghetti", amount: 300, unit: "g" },
+        { ingredientId: "tomato_sauce", name: "Tomato Sauce", amount: 1, unit: "jar" },
+        { ingredientId: "onion", name: "Onion", amount: 1, unit: "piece" },
+        { ingredientId: "garlic", name: "Garlic Cloves", amount: 3, unit: "piece" }
+      ]
+    },
+    {
+      id: "sheet_pan_chicken",
+      name: "Sheet Pan Chicken & Veggies",
+      mealType: "dinner",
+      tags: ["dinner", "easy"],
+      dietTags: [],
+      nutrition: { calories: 520, protein: 36, carbs: 40, fat: 18 },
+      ingredients: [
+        { ingredientId: "chicken_thighs", name: "Chicken Thighs", amount: 600, unit: "g" },
+        { ingredientId: "potatoes", name: "Potatoes", amount: 400, unit: "g" },
+        { ingredientId: "carrots", name: "Carrots", amount: 200, unit: "g" },
+        { ingredientId: "broccoli", name: "Broccoli", amount: 200, unit: "g" }
+      ]
+    },
+    {
+      id: "chili",
+      name: "Beef Chili",
+      mealType: "dinner",
+      tags: ["dinner", "one-pot"],
+      dietTags: [],
+      nutrition: { calories: 580, protein: 34, carbs: 48, fat: 24 },
+      ingredients: [
+        { ingredientId: "ground_beef", name: "Ground Beef", amount: 500, unit: "g" },
+        { ingredientId: "kidney_beans", name: "Kidney Beans", amount: 1, unit: "can" },
+        { ingredientId: "tomato_sauce", name: "Tomato Sauce", amount: 1, unit: "can" },
+        { ingredientId: "onion", name: "Onion", amount: 1, unit: "piece" }
+      ]
+    },
+    // Vegetarian example
+    {
+      id: "veggie_pasta",
+      name: "Roasted Veggie Pasta",
+      mealType: "dinner",
+      tags: ["dinner", "vegetarian"],
+      dietTags: ["vegetarian"],
+      nutrition: { calories: 500, protein: 18, carbs: 78, fat: 12 },
+      ingredients: [
+        { ingredientId: "spaghetti", name: "Spaghetti", amount: 300, unit: "g" },
+        { ingredientId: "tomato_sauce", name: "Tomato Sauce", amount: 1, unit: "jar" },
+        { ingredientId: "zucchini", name: "Zucchini", amount: 150, unit: "g" },
+        { ingredientId: "bell_pepper", name: "Bell Pepper", amount: 1, unit: "piece" }
+      ]
+    },
+    // Vegan example
+    {
+      id: "vegan_stir_fry",
+      name: "Tofu Veggie Stir Fry",
+      mealType: "dinner",
+      tags: ["dinner", "vegan"],
+      dietTags: ["vegan"],
+      nutrition: { calories: 480, protein: 22, carbs: 55, fat: 16 },
+      ingredients: [
+        { ingredientId: "tofu", name: "Tofu", amount: 300, unit: "g" },
+        { ingredientId: "mixed_veggies", name: "Mixed Stir Fry Veggies", amount: 300, unit: "g" },
+        { ingredientId: "soy_sauce", name: "Soy Sauce", amount: 50, unit: "ml" },
+        { ingredientId: "rice", name: "Rice", amount: 250, unit: "g" }
+      ]
+    },
+    // Keto / Low-Carb / Gluten-Free examples
+    {
+      id: "keto_chicken_salad",
+      name: "Keto Chicken Salad Bowl",
+      mealType: "dinner",
+      tags: ["dinner", "keto"],
+      dietTags: ["keto", "low_carb", "gluten_free"],
+      nutrition: { calories: 520, protein: 42, carbs: 10, fat: 32 },
+      ingredients: [
+        { ingredientId: "chicken_breast", name: "Chicken Breast", amount: 400, unit: "g" },
+        { ingredientId: "lettuce", name: "Lettuce", amount: 150, unit: "g" },
+        { ingredientId: "olive_oil", name: "Olive Oil", amount: 30, unit: "ml" },
+        { ingredientId: "avocado", name: "Avocado", amount: 1, unit: "piece" }
+      ]
+    },
+    {
+      id: "low_carb_egg_scramble",
+      name: "Low-Carb Egg & Veggie Scramble",
+      mealType: "any",
+      tags: ["breakfast", "low_carb"],
+      dietTags: ["low_carb", "gluten_free"],
+      nutrition: { calories: 320, protein: 22, carbs: 6, fat: 22 },
+      ingredients: [
+        { ingredientId: "eggs", name: "Eggs", amount: 4, unit: "piece" },
+        { ingredientId: "spinach", name: "Spinach", amount: 50, unit: "g" },
+        { ingredientId: "bell_pepper", name: "Bell Pepper", amount: 0.5, unit: "piece" },
+        { ingredientId: "cheddar", name: "Cheddar Cheese", amount: 40, unit: "g" }
+      ]
+    }
+  ];
+
+  const STORES = [
+    { id: "walmart", name: "Walmart" },
+    { id: "aldi", name: "Aldi" },
+    { id: "kroger", name: "Kroger" }
+  ];
+
+  const STORE_PRODUCTS = [
+    // Walmart
+    { storeId: "walmart", ingredientId: "chicken_breast", productName: "Great Value Chicken Breast 2 lb", packageAmount: 907, packageUnit: "g", price: 7.48 },
+    { storeId: "walmart", ingredientId: "ground_beef", productName: "Great Value Ground Beef 2 lb", packageAmount: 907, packageUnit: "g", price: 6.98 },
+    { storeId: "walmart", ingredientId: "fettuccine", productName: "Great Value Fettuccine 1 lb", packageAmount: 454, packageUnit: "g", price: 1.32 },
+    { storeId: "walmart", ingredientId: "alfredo_sauce", productName: "Great Value Alfredo Sauce 15 oz jar", packageAmount: 1, packageUnit: "jar", price: 2.12 },
+    { storeId: "walmart", ingredientId: "parmesan", productName: "Parmesan Cheese Shredded 8 oz", packageAmount: 226, packageUnit: "g", price: 3.48 },
+    { storeId: "walmart", ingredientId: "taco_shells", productName: "Taco Shells 12 count", packageAmount: 12, packageUnit: "piece", price: 2.18 },
+    { storeId: "walmart", ingredientId: "lettuce", productName: "Romaine Hearts 3 ct", packageAmount: 600, packageUnit: "g", price: 3.24 },
+    { storeId: "walmart", ingredientId: "cheddar", productName: "Shredded Cheddar 8 oz", packageAmount: 226, packageUnit: "g", price: 2.28 },
+    { storeId: "walmart", ingredientId: "salsa", productName: "Salsa 16 oz jar", packageAmount: 1, packageUnit: "jar", price: 2.94 },
+    { storeId: "walmart", ingredientId: "mixed_veggies", productName: "Frozen Stir Fry Veggies 12 oz", packageAmount: 340, packageUnit: "g", price: 2.44 },
+    { storeId: "walmart", ingredientId: "soy_sauce", productName: "Soy Sauce 15 oz", packageAmount: 444, packageUnit: "ml", price: 2.18 },
+    { storeId: "walmart", ingredientId: "rice", productName: "Long Grain Rice 2 lb", packageAmount: 907, packageUnit: "g", price: 2.12 },
+    { storeId: "walmart", ingredientId: "spaghetti", productName: "Spaghetti 1 lb", packageAmount: 454, packageUnit: "g", price: 1.32 },
+    { storeId: "walmart", ingredientId: "tomato_sauce", productName: "Tomato Sauce 24 oz jar/can", packageAmount: 1, packageUnit: "jar", price: 2.18 },
+    { storeId: "walmart", ingredientId: "onion", productName: "Yellow Onions 3 lb bag", packageAmount: 6, packageUnit: "piece", price: 2.74 },
+    { storeId: "walmart", ingredientId: "garlic", productName: "Garlic Bulb 3 ct", packageAmount: 9, packageUnit: "piece", price: 2.24 },
+    { storeId: "walmart", ingredientId: "chicken_thighs", productName: "Chicken Thighs 2.5 lb", packageAmount: 1134, packageUnit: "g", price: 6.98 },
+    { storeId: "walmart", ingredientId: "potatoes", productName: "Russet Potatoes 5 lb", packageAmount: 2268, packageUnit: "g", price: 3.98 },
+    { storeId: "walmart", ingredientId: "carrots", productName: "Carrots 2 lb bag", packageAmount: 907, packageUnit: "g", price: 1.48 },
+    { storeId: "walmart", ingredientId: "broccoli", productName: "Broccoli Crowns 1 lb", packageAmount: 454, packageUnit: "g", price: 1.98 },
+    { storeId: "walmart", ingredientId: "kidney_beans", productName: "Kidney Beans 15 oz can", packageAmount: 1, packageUnit: "can", price: 1.18 },
+
+    // Aldi
+    { storeId: "aldi", ingredientId: "chicken_breast", productName: "Kirkwood Chicken Breast 2 lb", packageAmount: 907, packageUnit: "g", price: 6.99 },
+    { storeId: "aldi", ingredientId: "ground_beef", productName: "80/20 Ground Beef 2 lb", packageAmount: 907, packageUnit: "g", price: 6.49 },
+    { storeId: "aldi", ingredientId: "fettuccine", productName: "Dry Fettuccine 1 lb", packageAmount: 454, packageUnit: "g", price: 1.05 },
+    { storeId: "aldi", ingredientId: "alfredo_sauce", productName: "Alfredo Sauce 15 oz", packageAmount: 1, packageUnit: "jar", price: 1.89 },
+    { storeId: "aldi", ingredientId: "parmesan", productName: "Shredded Parmesan 8 oz", packageAmount: 226, packageUnit: "g", price: 2.99 },
+    { storeId: "aldi", ingredientId: "taco_shells", productName: "Taco Shells 12 count", packageAmount: 12, packageUnit: "piece", price: 1.75 },
+    { storeId: "aldi", ingredientId: "lettuce", productName: "Romaine Hearts 3 ct", packageAmount: 600, packageUnit: "g", price: 2.49 },
+    { storeId: "aldi", ingredientId: "cheddar", productName: "Shredded Cheddar 8 oz", packageAmount: 226, packageUnit: "g", price: 2.09 },
+    { storeId: "aldi", ingredientId: "salsa", productName: "Salsa 16 oz", packageAmount: 1, packageUnit: "jar", price: 1.95 },
+
+    // Kroger
+    { storeId: "kroger", ingredientId: "chicken_breast", productName: "Kroger Chicken Breast 2 lb", packageAmount: 907, packageUnit: "g", price: 7.99 },
+    { storeId: "kroger", ingredientId: "ground_beef", productName: "Kroger Ground Beef 2 lb", packageAmount: 907, packageUnit: "g", price: 7.29 },
+    { storeId: "kroger", ingredientId: "fettuccine", productName: "Fettuccine 1 lb", packageAmount: 454, packageUnit: "g", price: 1.49 },
+    { storeId: "kroger", ingredientId: "alfredo_sauce", productName: "Alfredo Sauce 15 oz", packageAmount: 1, packageUnit: "jar", price: 2.49 },
+    { storeId: "kroger", ingredientId: "parmesan", productName: "Parmesan Shredded 8 oz", packageAmount: 226, packageUnit: "g", price: 3.79 },
+    { storeId: "kroger", ingredientId: "taco_shells", productName: "Taco Shells 12 count", packageAmount: 12, packageUnit: "piece", price: 2.49 },
+    { storeId: "kroger", ingredientId: "lettuce", productName: "Romaine Hearts 3 ct", packageAmount: 600, packageUnit: "g", price: 3.49 },
+    { storeId: "kroger", ingredientId: "cheddar", productName: "Shredded Cheddar 8 oz", packageAmount: 226, packageUnit: "g", price: 2.59 },
+    { storeId: "kroger", ingredientId: "salsa", productName: "Salsa 16 oz", packageAmount: 1, packageUnit: "jar", price: 3.19 }
+  ];
+
+  const STORAGE_KEYS = {
+    history: "mealPlanner_history",
+    plan: "mealPlanner_currentPlan"
+  };
+  const USER_RECIPES_KEY = "mealPlanner_userRecipes";
+  const MEAL_TYPES = ["breakfast", "lunch", "dinner"];
+
+  let currentGroceryList = [];
+  let draftIngredients = [];
+
+  function todayISO() {
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+  function addDaysISO(baseISO, days) {
+    const d = new Date(baseISO);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0,10);
+  }
+
+  function loadHistory() {
+    const raw = localStorage.getItem(STORAGE_KEYS.history);
+    return raw ? JSON.parse(raw) : [];
+  }
+  function saveHistory(history) {
+    localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(history));
+  }
+  function loadPlan() {
+    const raw = localStorage.getItem(STORAGE_KEYS.plan);
+    return raw ? JSON.parse(raw) : null;
+  }
+  function savePlan(plan) {
+    if (plan === null) {
+      localStorage.removeItem(STORAGE_KEYS.plan);
+    } else {
+      localStorage.setItem(STORAGE_KEYS.plan, JSON.stringify(plan));
+    }
+  }
+  function loadUserRecipes() {
+    const raw = localStorage.getItem(USER_RECIPES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }
+  function saveUserRecipes(list) {
+    localStorage.setItem(USER_RECIPES_KEY, JSON.stringify(list));
+  }
+  function getAllRecipes() {
+    return RECIPES.concat(loadUserRecipes());
+  }
+
+  // Diet helpers
+  function loadDiet() {
+    const stored = localStorage.getItem(DIET_KEY);
+    return stored || "any";
+  }
+  function saveDiet(dietId) {
+    localStorage.setItem(DIET_KEY, dietId);
+  }
+  function renderDietDropdown() {
+    const sel = document.getElementById("dietSelect");
+    sel.innerHTML = "";
+    const current = loadDiet();
+    DIETS.forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.label;
+      if (d.id === current) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener("change", () => {
+      saveDiet(sel.value);
+    });
+  }
+
+  function recipeMatchesDiet(recipe, diet) {
+    if (!diet || diet === "any") return true;
+    const tags = recipe.dietTags || [];
+    switch (diet) {
+      case "vegan":
+        return tags.includes("vegan");
+      case "vegetarian":
+        return tags.includes("vegetarian") || tags.includes("vegan");
+      case "keto":
+        return tags.includes("keto");
+      case "low_carb":
+        return tags.includes("low_carb") || tags.includes("keto");
+      case "gluten_free":
+        return tags.includes("gluten_free");
+      default:
+        return true;
+    }
+  }
+
+  function getCandidatesForMealType(allRecipes, mealType, recentRecipeIds, diet) {
+    let candidates = allRecipes.filter(r =>
+      (r.mealType === mealType || r.mealType === "any" || !r.mealType) &&
+      !recentRecipeIds.has(r.id) &&
+      recipeMatchesDiet(r, diet)
+    );
+    if (candidates.length === 0) {
+      candidates = allRecipes.filter(r =>
+        !recentRecipeIds.has(r.id) &&
+        recipeMatchesDiet(r, diet)
+      );
+    }
+    if (candidates.length === 0) {
+      candidates = allRecipes.filter(r => recipeMatchesDiet(r, diet));
+    }
+    if (candidates.length === 0) {
+      candidates = allRecipes.filter(r => !recentRecipeIds.has(r.id));
+      if (candidates.length === 0) {
+        candidates = allRecipes.slice();
+      }
+    }
+    return candidates;
+  }
+
+  function generateWeeklyPlan() {
+    const history = loadHistory();
+    const allRecipes = getAllRecipes();
+    const startDate = todayISO();
+    const days = 7;
+    const cutoffDate = addDaysISO(startDate, -30);
+    const currentDiet = loadDiet();
+
+    const recentRecipeIds = new Set(
+      history
+        .filter(h => h.date >= cutoffDate && h.date <= startDate)
+        .map(h => h.recipeId)
+    );
+
+    const plan = [];
+    const usedThisWeek = new Set();
+
+    for (let i = 0; i < days; i++) {
+      const date = addDaysISO(startDate, i);
+      const meals = {};
+
+      for (const mealType of MEAL_TYPES) {
+        let candidates = getCandidatesForMealType(allRecipes, mealType, recentRecipeIds, currentDiet);
+        let pool = candidates.filter(r => !usedThisWeek.has(r.id));
+        if (pool.length === 0) pool = candidates;
+        const chosen = pool[Math.floor(Math.random() * pool.length)];
+        usedThisWeek.add(chosen.id);
+        meals[mealType] = chosen.id;
+      }
+
+      plan.push({ date, meals });
+    }
+
+    const newHistory = history.filter(h =>
+      !plan.some(p => p.date === h.date)
+    );
+    for (const day of plan) {
+      for (const mealType of MEAL_TYPES) {
+        const rid = day.meals[mealType];
+        newHistory.push({ date: day.date, recipeId: rid });
+      }
+    }
+
+    saveHistory(newHistory);
+    savePlan(plan);
+    return plan;
+  }
+
+  function buildGroceryList(plan) {
+    const allRecipes = getAllRecipes();
+    const aggregate = {};
+    for (const day of plan) {
+      for (const mealType of MEAL_TYPES) {
+        const rid = day.meals[mealType];
+        const recipe = allRecipes.find(r => r.id === rid);
+        if (!recipe) continue;
+        for (const ing of recipe.ingredients) {
+          const key = `${ing.ingredientId}__${ing.unit}`;
+          if (!aggregate[key]) {
+            aggregate[key] = {
+              ingredientId: ing.ingredientId,
+              name: ing.name,
+              amount: 0,
+              unit: ing.unit
+            };
+          }
+          aggregate[key].amount += ing.amount;
+        }
+      }
+    }
+    return Object.values(aggregate);
+  }
+
+  function swapMeal(date, mealType, newRecipeId) {
+    const plan = loadPlan();
+    if (!plan) return;
+    const dayEntry = plan.find(p => p.date === date);
+    if (!dayEntry) return;
+    dayEntry.meals[mealType] = newRecipeId;
+    savePlan(plan);
+
+    const history = loadHistory();
+    const newHistory = history.filter(h => h.date !== date);
+    for (const mt of MEAL_TYPES) {
+      newHistory.push({ date, recipeId: dayEntry.meals[mt] });
+    }
+    saveHistory(newHistory);
+
+    render(plan);
+  }
+
+  function findProductForIngredient(storeId, ingredientId) {
+    return STORE_PRODUCTS.find(
+      p => p.storeId === storeId && p.ingredientId === ingredientId
+    );
+  }
+
+  function estimateCost(groceryList, storeId) {
+    let total = 0;
+    const lines = [];
+
+    for (const item of groceryList) {
+      const product = findProductForIngredient(storeId, item.ingredientId);
+      if (!product) {
+        lines.push({
+          ingredientName: item.name,
+          productName: "No product mapping yet",
+          packages: "-",
+          lineCost: 0
+        });
+        continue;
+      }
+
+      if (product.packageUnit !== item.unit) {
+        lines.push({
+          ingredientName: item.name,
+          productName: product.productName + " (units differ, assume 1 pkg)",
+          packages: 1,
+          lineCost: product.price
+        });
+        total += product.price;
+        continue;
+      }
+
+      const packagesNeeded = Math.ceil(item.amount / product.packageAmount);
+      const lineCost = packagesNeeded * product.price;
+      total += lineCost;
+
+      lines.push({
+        ingredientName: item.name,
+        productName: product.productName,
+        packages: packagesNeeded,
+        lineCost
+      });
+    }
+    return { total, lines };
+  }
+
+  function slugify(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  }
+  function makeIngredientId(name) {
+    return "user_ing_" + slugify(name);
+  }
+
+  function renderDraftIngredients() {
+    const list = document.getElementById("ingredientDraftList");
+    list.innerHTML = "";
+    if (draftIngredients.length === 0) {
+      list.innerHTML = "<li class=\"note\">No ingredients added yet.</li>";
+      return;
+    }
+    draftIngredients.forEach((ing, idx) => {
+      const li = document.createElement("li");
+      li.className = "ingredient-item";
+      li.innerHTML = `<span>${ing.name} – ${ing.amount} ${ing.unit}</span>`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "secondary";
+      btn.textContent = "Remove";
+      btn.addEventListener("click", () => {
+        draftIngredients.splice(idx, 1);
+        renderDraftIngredients();
+      });
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+  }
+
+  function renderUserRecipesList() {
+    const container = document.getElementById("userRecipesList");
+    const userRecipes = loadUserRecipes();
+    if (!userRecipes.length) {
+      container.textContent = "No custom recipes yet. Add one above!";
+      return;
+    }
+    container.innerHTML =
+      "Your custom recipes: " + userRecipes.map(r => r.name).join(", ");
+  }
+
+  function handleAddIngredient() {
+    const nameInput = document.getElementById("ingredientNameInput");
+    const amountInput = document.getElementById("ingredientAmountInput");
+    const unitInput = document.getElementById("ingredientUnitInput");
+
+    const name = nameInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+    const unit = unitInput.value.trim();
+
+    if (!name || !unit || isNaN(amount) || amount <= 0) {
+      alert("Enter ingredient name, positive amount, and unit.");
+      return;
+    }
+
+    draftIngredients.push({ name, amount, unit });
+    nameInput.value = "";
+    amountInput.value = "";
+    unitInput.value = "";
+    renderDraftIngredients();
+  }
+
+  function handleSaveRecipe() {
+    const nameInput = document.getElementById("recipeNameInput");
+    const tagsInput = document.getElementById("recipeTagsInput");
+    const mealTypeSelect = document.getElementById("mealTypeSelect");
+    const recipeDietSelect = document.getElementById("recipeDietSelect");
+
+    const caloriesInput = document.getElementById("caloriesInput");
+    const proteinInput = document.getElementById("proteinInput");
+    const carbsInput = document.getElementById("carbsInput");
+    const fatInput = document.getElementById("fatInput");
+
+    const name = nameInput.value.trim();
+    if (!name) {
+      alert("Give your recipe a name.");
+      return;
+    }
+    if (draftIngredients.length === 0) {
+      alert("Add at least one ingredient.");
+      return;
+    }
+
+    const tags = tagsInput.value
+      .split(",")
+      .map(t => t.trim())
+      .filter(Boolean);
+
+    const mealType = mealTypeSelect.value || "any";
+    const diet = recipeDietSelect.value || "any";
+
+    const ingredients = draftIngredients.map(ing => ({
+      ingredientId: makeIngredientId(ing.name),
+      name: ing.name,
+      amount: ing.amount,
+      unit: ing.unit
+    }));
+
+    const calories = parseFloat(caloriesInput.value) || 0;
+    const protein = parseFloat(proteinInput.value) || 0;
+    const carbs = parseFloat(carbsInput.value) || 0;
+    const fat = parseFloat(fatInput.value) || 0;
+
+    const userRecipes = loadUserRecipes();
+    const id = "user_recipe_" + Date.now();
+
+    let dietTags = [];
+    if (diet === "vegetarian") dietTags = ["vegetarian"];
+    else if (diet === "vegan") dietTags = ["vegan"];
+    else if (diet === "keto") dietTags = ["keto", "low_carb"];
+    else if (diet === "low_carb") dietTags = ["low_carb"];
+    else if (diet === "gluten_free") dietTags = ["gluten_free"];
+
+    userRecipes.push({
+      id,
+      name,
+      mealType,
+      tags,
+      dietTags,
+      nutrition: { calories, protein, carbs, fat },
+      ingredients
+    });
+    saveUserRecipes(userRecipes);
+
+    nameInput.value = "";
+    tagsInput.value = "";
+    mealTypeSelect.value = "any";
+    recipeDietSelect.value = "any";
+    caloriesInput.value = "";
+    proteinInput.value = "";
+    carbsInput.value = "";
+    fatInput.value = "";
+    draftIngredients = [];
+    renderDraftIngredients();
+    renderUserRecipesList();
+
+    const existingPlan = loadPlan();
+    render(existingPlan);
+
+    alert("Recipe saved! It will be included in future plans and swaps.");
+  }
+
+  function renderNutrition(plan) {
+    const container = document.getElementById("nutritionBody");
+    if (!container) return;
+
+    if (!plan || !Array.isArray(plan) || plan.length === 0) {
+      container.textContent = "Generate a plan to see calories and macros.";
+      return;
+    }
+
+    const allRecipes = getAllRecipes();
+    const rows = [];
+    let total = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+    for (const day of plan) {
+      let dayTotals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+      for (const mealType of MEAL_TYPES) {
+        const rid = day.meals[mealType];
+        const recipe = allRecipes.find(r => r.id === rid);
+        if (!recipe || !recipe.nutrition) continue;
+        dayTotals.calories += recipe.nutrition.calories || 0;
+        dayTotals.protein += recipe.nutrition.protein || 0;
+        dayTotals.carbs += recipe.nutrition.carbs || 0;
+        dayTotals.fat += recipe.nutrition.fat || 0;
+      }
+      total.calories += dayTotals.calories;
+      total.protein += dayTotals.protein;
+      total.carbs += dayTotals.carbs;
+      total.fat += dayTotals.fat;
+
+      const label = new Date(day.date).toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      });
+      rows.push({ label, ...dayTotals });
+    }
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Calories</th>
+            <th>Protein (g)</th>
+            <th>Carbs (g)</th>
+            <th>Fat (g)</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    for (const r of rows) {
+      html += `
+        <tr>
+          <td>${r.label}</td>
+          <td>${Math.round(r.calories)}</td>
+          <td>${Math.round(r.protein)}</td>
+          <td>${Math.round(r.carbs)}</td>
+          <td>${Math.round(r.fat)}</td>
+        </tr>
+      `;
+    }
+    html += `
+        <tr>
+          <td><strong>Total</strong></td>
+          <td><strong>${Math.round(total.calories)}</strong></td>
+          <td><strong>${Math.round(total.protein)}</strong></td>
+          <td><strong>${Math.round(total.carbs)}</strong></td>
+          <td><strong>${Math.round(total.fat)}</strong></td>
+        </tr>
+      </tbody></table>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function renderShoppingList() {
+    const container = document.getElementById("shoppingList");
+    if (!container) return;
+
+    if (!currentGroceryList || currentGroceryList.length === 0) {
+      container.innerHTML = '<p class="note">Generate a plan to enable shopping mode.</p>';
+      return;
+    }
+
+    let html = '<ul class="shopping-list">';
+    for (const item of currentGroceryList) {
+      html += `
+        <li>
+          <label>
+            <input type="checkbox">
+            <span>${item.name} — ${item.amount} ${item.unit}</span>
+          </label>
+        </li>
+      `;
+    }
+    html += "</ul>";
+    container.innerHTML = html;
+  }
+
+  function render(plan) {
+    const planGrid = document.getElementById("planGrid");
+    const allRecipes = getAllRecipes();
+    planGrid.innerHTML = "";
+
+    if (plan && (!Array.isArray(plan) || !plan[0] || !plan[0].meals)) {
+      plan = null;
+      savePlan(null);
+    }
+
+    if (!plan) {
+      planGrid.innerHTML = "<p>No plan yet. Click \"Generate 7-Day Plan\".</p>";
+      document.getElementById("groceryBody").innerHTML = "";
+      document.getElementById("estimateSummary").textContent = "";
+      document.getElementById("costBreakdown").textContent =
+        "No estimate yet. Choose a store and click \"Estimate Cost.\"";
+      currentGroceryList = [];
+      renderNutrition(null);
+      renderShoppingList();
+      return;
+    }
+
+    const today = todayISO();
+
+    for (const day of plan) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const header = document.createElement("div");
+      header.className = "card-header";
+      const dateLabel = new Date(day.date).toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      });
+      header.innerHTML = `
+        <span>${dateLabel}</span>
+        <span class="badge">${day.date === today ? "Today" : "Planned"}</span>
+      `;
+      card.appendChild(header);
+
+      for (const mealType of MEAL_TYPES) {
+        const rid = day.meals[mealType];
+        const recipe = allRecipes.find(r => r.id === rid);
+
+        const row = document.createElement("div");
+        row.className = "meal-row";
+
+        const rowHeader = document.createElement("div");
+        rowHeader.className = "meal-row-header";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "meal-label";
+        labelSpan.textContent =
+          mealType.charAt(0).toUpperCase() + mealType.slice(1);
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "meal-name";
+        nameSpan.textContent = recipe ? recipe.name : "Unknown recipe";
+
+        rowHeader.appendChild(labelSpan);
+        rowHeader.appendChild(nameSpan);
+
+        const tagsDiv = document.createElement("div");
+        const pills = [];
+        if (recipe && recipe.tags && recipe.tags.length > 0) {
+          pills.push(...recipe.tags);
+        }
+        if (recipe && recipe.dietTags && recipe.dietTags.length > 0) {
+          recipe.dietTags.forEach(d => pills.push(d));
+        }
+        if (pills.length > 0) {
+          tagsDiv.innerHTML = pills
+            .map(t => `<span class="pill">${t}</span>`)
+            .join(" ");
+        }
+
+        const swapRow = document.createElement("div");
+        swapRow.className = "swap-row";
+
+        const select = document.createElement("select");
+        const all = getAllRecipes();
+        for (const r of all) {
+          const opt = document.createElement("option");
+          opt.value = r.id;
+          opt.textContent =
+            r.name + (r.mealType ? ` (${r.mealType})` : "");
+          if (r.id === rid) opt.selected = true;
+          select.appendChild(opt);
+        }
+
+        const swapBtn = document.createElement("button");
+        swapBtn.textContent = "Swap";
+        swapBtn.className = "secondary";
+        swapBtn.addEventListener("click", () => {
+          const newId = select.value;
+          if (newId && newId !== rid) {
+            swapMeal(day.date, mealType, newId);
+          }
+        });
+
+        swapRow.appendChild(select);
+        swapRow.appendChild(swapBtn);
+
+        row.appendChild(rowHeader);
+        row.appendChild(tagsDiv);
+        row.appendChild(swapRow);
+
+        card.appendChild(row);
+      }
+
+      planGrid.appendChild(card);
+    }
+
+    const grocery = buildGroceryList(plan);
+    currentGroceryList = grocery;
+    const tbody = document.getElementById("groceryBody");
+    tbody.innerHTML = "";
+    for (const item of grocery) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.amount}</td>
+        <td>${item.unit}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    document.getElementById("estimateSummary").textContent = "";
+    document.getElementById("costBreakdown").textContent =
+      "No estimate yet. Choose a store and click \"Estimate Cost.\"";
+
+    renderNutrition(plan);
+    renderShoppingList();
+  }
+
+  function renderStoreDropdown() {
+    const sel = document.getElementById("storeSelect");
+    sel.innerHTML = "";
+    for (const s of STORES) {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.name;
+      sel.appendChild(opt);
+    }
+  }
+
+  function buildGroceryText() {
+    if (!currentGroceryList || currentGroceryList.length === 0) {
+      return "";
+    }
+    let lines = ["Grocery List:"];
+    for (const item of currentGroceryList) {
+      lines.push(`- ${item.name}: ${item.amount} ${item.unit}`);
+    }
+    return lines.join("\n");
+  }
+
+  function showPage(pageId) {
+    document.querySelectorAll(".page").forEach(p => {
+      p.classList.toggle("active", p.id === pageId);
+    });
+    document.querySelectorAll(".nav button").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-page") === pageId);
+    });
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    // Theme
+    initTheme();
+
+    // Nav buttons
+    document.querySelectorAll(".nav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        showPage(btn.getAttribute("data-page"));
+      });
+    });
+
+    // Theme toggle click
+    const themeBtn = document.getElementById("themeToggleBtn");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = localStorage.getItem(THEME_KEY) || "dark";
+        const next = current === "light" ? "dark" : "light";
+        applyTheme(next);
+      });
+    }
+
+    // Quick nav buttons
+    document.getElementById("goGroceryBtn").addEventListener("click", () => {
+      showPage("groceryPage");
+    });
+    document.getElementById("goRecipesBtn").addEventListener("click", () => {
+      showPage("recipesPage");
+    });
+    document.getElementById("goCostPageBtn").addEventListener("click", () => {
+      showPage("costPage");
+    });
+
+    // Diet dropdown
+    renderDietDropdown();
+
+    // Planner buttons
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      const plan = generateWeeklyPlan();
+      render(plan);
+    });
+
+    document.getElementById("clearHistoryBtn").addEventListener("click", () => {
+      if (confirm("Clear history and current plan? (Custom recipes stay saved.)")) {
+        localStorage.removeItem(STORAGE_KEYS.history);
+        localStorage.removeItem(STORAGE_KEYS.plan);
+        render(null);
+      }
+    });
+
+    // Cost estimate
+    document.getElementById("estimateBtn").addEventListener("click", () => {
+      if (!currentGroceryList || currentGroceryList.length === 0) {
+        alert("Generate a plan first on the Meals page.");
+        return;
+      }
+      const storeId = document.getElementById("storeSelect").value;
+      const store = STORES.find(s => s.id === storeId);
+      const { total, lines } = estimateCost(currentGroceryList, storeId);
+
+      document.getElementById("estimateSummary").textContent =
+        `Estimated cost at ${store.name}: $${total.toFixed(2)}`;
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Ingredient</th>
+              <th>Product</th>
+              <th>Packages</th>
+              <th>Est. Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      for (const line of lines) {
+        html += `
+          <tr>
+            <td>${line.ingredientName}</td>
+            <td>${line.productName}</td>
+            <td>${line.packages}</td>
+            <td>${line.lineCost === 0 ? "-" : "$" + line.lineCost.toFixed(2)}</td>
+          </tr>
+        `;
+      }
+      html += "</tbody></table>";
+      document.getElementById("costBreakdown").innerHTML = html;
+    });
+
+    // SMS button
+    document.getElementById("smsBtn").addEventListener("click", () => {
+      if (!currentGroceryList || currentGroceryList.length === 0) {
+        alert("Generate a plan first so we have a grocery list.");
+        return;
+      }
+      const text = buildGroceryText();
+      if (!text) {
+        alert("Grocery list is empty.");
+        return;
+      }
+      const smsUrl = "sms:&body=" + encodeURIComponent(text);
+      window.location.href = smsUrl;
+    });
+
+    // Copy button
+    document.getElementById("copyListBtn").addEventListener("click", async () => {
+      if (!currentGroceryList || currentGroceryList.length === 0) {
+        alert("Generate a plan first so we have a grocery list.");
+        return;
+      }
+      const text = buildGroceryText();
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("Grocery list copied to clipboard!");
+      } catch (e) {
+        alert("Could not copy automatically. You can still select and copy text from the page.");
+      }
+    });
+
+    // Recipe builder events
+    document
+      .getElementById("addIngredientBtn")
+      .addEventListener("click", handleAddIngredient);
+    document
+      .getElementById("saveRecipeBtn")
+      .addEventListener("click", handleSaveRecipe);
+
+    renderStoreDropdown();
+    renderDraftIngredients();
+    renderUserRecipesList();
+
+    const existingPlan = loadPlan();
+    render(existingPlan);
+  });
+</script>
+</body>
+</html>
