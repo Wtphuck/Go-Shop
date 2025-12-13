@@ -707,7 +707,7 @@
         align-items: stretch;
       }
     }
-    @media (max-width: 480px) {
+   @media (max-width: 480px) {
   h1 { font-size: 1.4rem; }
   h2 { font-size: 1.1rem; }
   p { font-size: 1rem; }
@@ -753,11 +753,81 @@
     flex-direction: column;
   }
 }
-    @media (max-width: 500px) {
+
+@media (max-width: 500px) {
   .grid {
     grid-template-columns: 1fr !important;
   }
 }
+    /* More mobile enhancements */
+@media (max-width: 640px) {
+  body {
+    padding: 0;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+  }
+
+  p, .note {
+    font-size: 0.95rem;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .controls-group {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  button.main,
+  button.secondary {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1.1rem;
+    font-size: 1rem;
+  }
+
+  select,
+  input[type="text"],
+  input[type="number"] {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Better shopping-mode list tap targets */
+  .shopping-list li {
+    margin-bottom: 0.4rem;
+  }
+
+  .shopping-list label {
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.75rem;
+    background: var(--card-soft);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .shopping-list input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+
 
   </style>
 </head>
@@ -1231,7 +1301,9 @@
   const MEAL_TYPES = ["breakfast", "lunch", "dinner"];
 
   let currentGroceryList = [];
-  let draftIngredients = [];
+let draftIngredients = [];
+let checkedShoppingKeys = new Set(); // track which items are checked
+
 
   function todayISO() {
     const d = new Date();
@@ -1708,22 +1780,76 @@ function renderShoppingList() {
     return;
   }
 
-  // Build checklist
-  let html = '<ul class="shopping-list">';
+  // Split into "to buy" and "checked off"
+  const toBuy = [];
+  const checked = [];
+
   for (const item of currentGroceryList) {
-    html += `
-      <li>
-        <label>
-          <input type="checkbox" />
-          <span>${item.name} — ${item.amount} ${item.unit}</span>
-        </label>
-      </li>
-    `;
+    const key =
+      ((item.ingredientId || (item.name + "|" + item.unit)) + "").toLowerCase();
+
+    const bucket = checkedShoppingKeys.has(key) ? checked : toBuy;
+    bucket.push({ item, key });
   }
-  html += "</ul>";
+
+  let html = "";
+
+  // Still to buy
+  if (toBuy.length > 0) {
+    html += `<h3>Still to buy</h3>`;
+    html += `<ul class="shopping-list">`;
+    for (const { item, key } of toBuy) {
+      html += `
+        <li>
+          <label>
+            <input type="checkbox" data-key="${key}">
+            <span>${item.name} — ${item.amount} ${item.unit}</span>
+          </label>
+        </li>
+      `;
+    }
+    html += `</ul>`;
+  } else {
+    html += `<p class="note">Everything is checked off 🎉</p>`;
+  }
+
+  // Checked off section
+  if (checked.length > 0) {
+    html += `<h3 style="margin-top:1rem;">Checked Off</h3>`;
+    html += `<ul class="shopping-list">`;
+    for (const { item, key } of checked) {
+      html += `
+        <li>
+          <label>
+            <input type="checkbox" data-key="${key}" checked>
+            <span>${item.name} — ${item.amount} ${item.unit}</span>
+          </label>
+        </li>
+      `;
+    }
+    html += `</ul>`;
+  }
 
   container.innerHTML = html;
+
+  // Wire up checkbox events: change set + re-render
+  container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener("change", () => {
+      const key = cb.getAttribute("data-key");
+      if (!key) return;
+
+      if (cb.checked) {
+        checkedShoppingKeys.add(key);
+      } else {
+        checkedShoppingKeys.delete(key);
+      }
+
+      // Re-render to move item between lists
+      renderShoppingList();
+    });
+  });
 }
+
 
 
   function render(plan) {
@@ -1742,6 +1868,9 @@ function renderShoppingList() {
       document.getElementById("estimateSummary").textContent = "";
       document.getElementById("costBreakdown").textContent =
         "No estimate yet. Choose a store and click \"Estimate Cost.\"";
+        checkedShoppingKeys = new Set();
+        currentGroceryList = [];
+
       currentGroceryList = [];
       renderNutrition(null);
       renderShoppingList();
@@ -1842,6 +1971,7 @@ function renderShoppingList() {
 
     const grocery = buildGroceryList(plan);
     currentGroceryList = grocery;
+    checkedShoppingKeys = new Set(); // new plan, nothing checked yet
     const tbody = document.getElementById("groceryBody");
     tbody.innerHTML = "";
     for (const item of grocery) {
@@ -1860,6 +1990,7 @@ function renderShoppingList() {
 
     renderNutrition(plan);
     renderShoppingList();
+    
   }
 
   function renderStoreDropdown() {
@@ -2029,6 +2160,7 @@ function renderShoppingList() {
 </script>
 </body>
 </html>
+
 
 
 
