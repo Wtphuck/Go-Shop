@@ -1694,29 +1694,35 @@
     container.innerHTML = html;
   }
 
-  function renderShoppingList() {
-    const container = document.getElementById("shoppingList");
-    if (!container) return;
+function renderShoppingList() {
+  // Only target the Shopping page's list container
+  const container = document.querySelector("#shoppingPage #shoppingList");
+  if (!container) return;
 
-    if (!currentGroceryList || currentGroceryList.length === 0) {
-      container.innerHTML = '<p class="note">Generate a plan to enable shopping mode.</p>';
-      return;
-    }
-
-    let html = '<ul class="shopping-list">';
-    for (const item of currentGroceryList) {
-      html += `
-        <li>
-          <label>
-            <input type="checkbox">
-            <span>${item.name} — ${item.amount} ${item.unit}</span>
-          </label>
-        </li>
-      `;
-    }
-    html += "</ul>";
-    container.innerHTML = html;
+  // No grocery list yet
+  if (!currentGroceryList || currentGroceryList.length === 0) {
+    container.innerHTML = `
+      <p class="note">Generate a plan to enable shopping mode.</p>
+    `;
+    return;
   }
+
+  // Build the checklist
+  let html = '<ul class="shopping-list">';
+  for (const item of currentGroceryList) {
+    html += `
+      <li>
+        <label>
+          <input type="checkbox" />
+          <span>${item.name} — ${item.amount} ${item.unit}</span>
+        </label>
+      </li>
+    `;
+  }
+  html += "</ul>";
+
+  container.innerHTML = html;
+}
 
   function render(plan) {
     const planGrid = document.getElementById("planGrid");
@@ -2021,6 +2027,7 @@
 </script>
 </body>
 </html>
+
 
 
 
