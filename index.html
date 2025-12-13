@@ -790,28 +790,27 @@
     <h1>Weekly Meal Plan</h1>
     <p>Breakfast, lunch & dinner for 7 days, no repeats for ~30 days.</p>
 
-   <div class="controls">
-  <!-- Diet FIRST -->
-  <div class="controls-group">
-    <label for="dietSelect">Diet:</label>
-    <select id="dietSelect"></select>
-  </div>
+    <div class="controls">
+      <!-- Diet FIRST -->
+      <div class="controls-group">
+        <label for="dietSelect">Diet:</label>
+        <select id="dietSelect"></select>
+      </div>
 
-  <!-- Then generate / clear -->
-  <div class="controls-group">
-    <button id="generateBtn" class="main">Generate 7-Day Plan</button>
-    <button id="clearHistoryBtn" class="secondary">Clear Meal History</button>
-  </div>
+      <!-- Then generate / clear -->
+      <div class="controls-group">
+        <button id="generateBtn" class="main">Generate 7-Day Plan</button>
+        <button id="clearHistoryBtn" class="secondary">Clear Meal History</button>
+      </div>
 
-  <!-- Quick links -->
-  <div class="controls-group">
-    <button id="goGroceryBtn" class="secondary">Go to Grocery List</button>
-    <button id="goRecipesBtn" class="secondary">Go to Add Recipes</button>
-  </div>
+      <!-- Quick links -->
+      <div class="controls-group">
+        <button id="goGroceryBtn" class="secondary">Go to Grocery List</button>
+        <button id="goRecipesBtn" class="secondary">Go to Add Recipes</button>
+      </div>
 
-  <span class="note">Diet, history, theme, and recipes are saved in this browser.</span>
-</div>
-
+      <span class="note">Diet, history, theme, and recipes are saved in this browser.</span>
+    </div>
 
     <h2>This Week's Meals</h2>
     <div id="planGrid" class="grid"></div>
@@ -841,7 +840,13 @@
         <tbody id="groceryBody"></tbody>
       </table>
     </div>
-      <!-- PAGE: SHOPPING MODE -->
+
+    <div style="margin-top:0.75rem;">
+      <button id="goCostPageBtn" class="secondary">Go to Cost Estimate</button>
+    </div>
+  </div>
+
+  <!-- PAGE: SHOPPING MODE -->
   <div id="shoppingPage" class="page">
     <h1>Shopping Mode</h1>
     <p>Use this checklist while you're in the store.</p>
@@ -852,15 +857,10 @@
         Generate a plan first so we have a grocery list. Checking items off here doesn't affect your plan;
         it's just for you while you shop.
       </p>
+      <!-- JS fills this -->
       <div id="shoppingList">
         <p class="note">Generate a plan to enable shopping mode.</p>
       </div>
-    </div>
-  </div>
-
-
-    <div style="margin-top:0.75rem;">
-      <button id="goCostPageBtn" class="secondary">Go to Cost Estimate</button>
     </div>
   </div>
 
@@ -977,6 +977,7 @@
     </div>
   </div>
 </div>
+
 
 <script>
   // ======== THEME ========
@@ -1707,7 +1708,7 @@ function renderShoppingList() {
     return;
   }
 
-  // Build the checklist
+  // Build checklist
   let html = '<ul class="shopping-list">';
   for (const item of currentGroceryList) {
     html += `
@@ -1723,6 +1724,7 @@ function renderShoppingList() {
 
   container.innerHTML = html;
 }
+
 
   function render(plan) {
     const planGrid = document.getElementById("planGrid");
@@ -2027,6 +2029,7 @@ function renderShoppingList() {
 </script>
 </body>
 </html>
+
 
 
 
