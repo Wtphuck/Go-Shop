@@ -97,6 +97,57 @@
       font-size: 0.9rem;
     }
 
+    .bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: rgba(10, 15, 30, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: none; /* hidden by default, shown on mobile via media query */
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+
+.bottom-nav button {
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 999px;
+}
+
+.bottom-nav button .icon {
+  font-size: 1.2rem;
+}
+
+.bottom-nav button.active {
+  color: var(--accent-strong);
+  background: rgba(0, 200, 120, 0.15);
+}
+
+/* Mobile: use bottom nav, hide top nav */
+@media (max-width: 640px) {
+  body {
+    padding-bottom: 64px; /* space so content isn't behind bottom nav */
+  }
+
+  .topbar .nav {
+    display: none;
+  }
+
+  .bottom-nav {
+    display: flex;
+  }
+
     /* Top bar with brand + nav + theme toggle */
     .topbar {
       position: sticky;
@@ -1315,8 +1366,9 @@
   const MEAL_TYPES = ["breakfast", "lunch", "dinner"];
 
   let currentGroceryList = [];
-let draftIngredients = [];
-let checkedShoppingKeys = new Set(); // track which items are checked
+  let draftIngredients = [];
+  let checkedShoppingKeys = new Set(); // track which items are checked
+  let currentPageId = "planPage"; // track which page is currently active
 
 
   function todayISO() {
@@ -2028,8 +2080,9 @@ function renderShoppingList() {
     }
     return lines.join("\n");
   }
-
 function showPage(pageId) {
+  currentPageId = pageId; // remember current page
+
   // Switch which page is active
   document.querySelectorAll(".page").forEach(p => {
     const isActive = p.id === pageId;
@@ -2048,6 +2101,16 @@ function showPage(pageId) {
     }
   });
 
+  // Update BOTH top nav and bottom nav buttons
+  document.querySelectorAll(".nav button, .bottom-nav button").forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      btn.getAttribute("data-page") === pageId
+    );
+  });
+}
+
+
   // Update nav button highlight
   document.querySelectorAll(".nav button").forEach(btn => {
     btn.classList.toggle(
@@ -2056,17 +2119,23 @@ function showPage(pageId) {
     );
   });
 }
+  const PAGE_ORDER = ["planPage", "groceryPage", "shoppingPage", "costPage", "recipesPage"];
+
+function goToRelativePage(offset) {
+  const currentIndex = PAGE_ORDER.indexOf(currentPageId);
+  if (currentIndex === -1) return;
+
+  const nextIndex = currentIndex + offset;
+  if (nextIndex < 0 || nextIndex >= PAGE_ORDER.length) return;
+
+  showPage(PAGE_ORDER[nextIndex]);
+}
 
 window.addEventListener("DOMContentLoaded", () => {
   // Theme
   initTheme();
 
-  // Nav buttons
-  document.querySelectorAll(".nav button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      showPage(btn.getAttribute("data-page"));
-    });
-  });
+ // Nav buttons
 
   // Quick nav buttons on Meals & Grocery pages
   const goGroceryBtn = document.getElementById("goGroceryBtn");
@@ -2082,6 +2151,36 @@ window.addEventListener("DOMContentLoaded", () => {
   const goCostPageBtn = document.getElementById("goCostPageBtn");
   if (goCostPageBtn) {
     goCostPageBtn.addEventListener("click", () => showPage("costPage"));
+  }
+   // Swipe left/right to change pages (mobile)
+  const swipeTarget = document.querySelector(".container");
+  if (swipeTarget) {
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    swipeTarget.addEventListener("touchstart", e => {
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        touchStartX = e.changedTouches[0].clientX;
+      }
+    });
+
+    swipeTarget.addEventListener("touchend", e => {
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        touchEndX = e.changedTouches[0].clientX;
+        const dx = touchEndX - touchStartX;
+
+        const THRESHOLD = 50; // pixels
+        if (Math.abs(dx) < THRESHOLD) return;
+
+        if (dx < 0) {
+          // swipe left → next page
+          goToRelativePage(1);
+        } else {
+          // swipe right → previous page
+          goToRelativePage(-1);
+        }
+      }
+    });
   }
 
   // Diet dropdown
@@ -2216,8 +2315,33 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 </script>
+  <!-- Bottom navigation for mobile -->
+<div class="bottom-nav">
+  <button data-page="planPage" class="active">
+    <span class="icon">🍽️</span>
+    <span class="label">Meals</span>
+  </button>
+  <button data-page="groceryPage">
+    <span class="icon">🛒</span>
+    <span class="label">Grocery</span>
+  </button>
+  <button data-page="shoppingPage">
+    <span class="icon">✅</span>
+    <span class="label">Shop</span>
+  </button>
+  <button data-page="costPage">
+    <span class="icon">💲</span>
+    <span class="label">Cost</span>
+  </button>
+  <button data-page="recipesPage">
+    <span class="icon">➕</span>
+    <span class="label">Recipes</span>
+  </button>
+</div>
+
 </body>
 </html>
+
 
 
 
