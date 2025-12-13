@@ -2080,6 +2080,9 @@ function renderShoppingList() {
     }
     return lines.join("\n");
   }
+// Track which page we’re on
+let currentPageId = "planPage";
+
 function showPage(pageId) {
   currentPageId = pageId; // remember current page
 
@@ -2110,16 +2113,7 @@ function showPage(pageId) {
   });
 }
 
-
-  // Update nav button highlight
-  document.querySelectorAll(".nav button").forEach(btn => {
-    btn.classList.toggle(
-      "active",
-      btn.getAttribute("data-page") === pageId
-    );
-  });
-
-  const PAGE_ORDER = ["planPage", "groceryPage", "shoppingPage", "costPage", "recipesPage"];
+const PAGE_ORDER = ["planPage", "groceryPage", "shoppingPage", "costPage", "recipesPage"];
 
 function goToRelativePage(offset) {
   const currentIndex = PAGE_ORDER.indexOf(currentPageId);
@@ -2135,7 +2129,19 @@ window.addEventListener("DOMContentLoaded", () => {
   // Theme
   initTheme();
 
- // Nav buttons
+  // Nav buttons (top)
+  document.querySelectorAll(".nav button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      showPage(btn.getAttribute("data-page"));
+    });
+  });
+
+  // Nav buttons (bottom)
+  document.querySelectorAll(".bottom-nav button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      showPage(btn.getAttribute("data-page"));
+    });
+  });
 
   // Quick nav buttons on Meals & Grocery pages
   const goGroceryBtn = document.getElementById("goGroceryBtn");
@@ -2151,36 +2157,6 @@ window.addEventListener("DOMContentLoaded", () => {
   const goCostPageBtn = document.getElementById("goCostPageBtn");
   if (goCostPageBtn) {
     goCostPageBtn.addEventListener("click", () => showPage("costPage"));
-  }
-   // Swipe left/right to change pages (mobile)
-  const swipeTarget = document.querySelector(".container");
-  if (swipeTarget) {
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    swipeTarget.addEventListener("touchstart", e => {
-      if (e.changedTouches && e.changedTouches.length > 0) {
-        touchStartX = e.changedTouches[0].clientX;
-      }
-    });
-
-    swipeTarget.addEventListener("touchend", e => {
-      if (e.changedTouches && e.changedTouches.length > 0) {
-        touchEndX = e.changedTouches[0].clientX;
-        const dx = touchEndX - touchStartX;
-
-        const THRESHOLD = 50; // pixels
-        if (Math.abs(dx) < THRESHOLD) return;
-
-        if (dx < 0) {
-          // swipe left → next page
-          goToRelativePage(1);
-        } else {
-          // swipe right → previous page
-          goToRelativePage(-1);
-        }
-      }
-    });
   }
 
   // Diet dropdown
@@ -2305,6 +2281,33 @@ window.addEventListener("DOMContentLoaded", () => {
     saveRecipeBtn.addEventListener("click", handleSaveRecipe);
   }
 
+  // Swipe left/right on container (mobile)
+  const swipeTarget = document.querySelector(".container");
+  if (swipeTarget) {
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    swipeTarget.addEventListener("touchstart", e => {
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        touchStartX = e.changedTouches[0].clientX;
+      }
+    });
+
+    swipeTarget.addEventListener("touchend", e => {
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        touchEndX = e.changedTouches[0].clientX;
+        const dx = touchEndX - touchStartX;
+        const THRESHOLD = 50;
+        if (Math.abs(dx) < THRESHOLD) return;
+        if (dx < 0) {
+          goToRelativePage(1);   // swipe left → next page
+        } else {
+          goToRelativePage(-1);  // swipe right → previous page
+        }
+      }
+    });
+  }
+
   // Initial setup
   renderStoreDropdown();
   renderDraftIngredients();
@@ -2313,6 +2316,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const existingPlan = loadPlan();
   render(existingPlan);
 });
+
 
 </script>
   <!-- Bottom navigation for mobile -->
@@ -2341,6 +2345,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
