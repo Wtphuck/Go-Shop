@@ -2080,29 +2080,6 @@ function renderShoppingList() {
     }
     return lines.join("\n");
   }
-// Track which page we’re on
-let currentPageId = "planPage";
-
-function showPage(pageId) {
-  currentPageId = pageId; // remember current page
-
-  // Switch which page is active
-  document.querySelectorAll(".page").forEach(p => {
-    const isActive = p.id === pageId;
-    p.classList.toggle("active", isActive);
-
-    if (isActive) {
-      // Add slide-in animation class
-      p.classList.add("animating-in");
-      p.addEventListener(
-        "animationend",
-        () => {
-          p.classList.remove("animating-in");
-        },
-        { once: true }
-      );
-    }
-  });
 
   // Update BOTH top nav and bottom nav buttons
   document.querySelectorAll(".nav button, .bottom-nav button").forEach(btn => {
@@ -2345,6 +2322,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
