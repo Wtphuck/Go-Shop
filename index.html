@@ -2082,8 +2082,8 @@ function renderShoppingList() {
   }
 
 
-   <!-- JS continues -->
-  <script>
+   //<!-- JS continues -->
+
   // ... all your previous functions are above this point ...
 
   const PAGE_ORDER = ["planPage", "groceryPage", "shoppingPage", "costPage", "recipesPage"];
@@ -2320,8 +2320,33 @@ function renderShoppingList() {
     render(existingPlan);
   });
   </script>
+  
+<!-- Bottom navigation HTML goes AFTER the script -->
+<div class="bottom-nav">
+  <button data-page="planPage" class="active">
+    <span class="icon">🍽️</span>
+    <span class="label">Meals</span>
+  </button>
+  <button data-page="groceryPage">
+    <span class="icon">🛒</span>
+    <span class="label">Grocery</span>
+  </button>
+  <button data-page="shoppingPage">
+    <span class="icon">✅</span>
+    <span class="label">Shop</span>
+  </button>
+  <button data-page="costPage">
+    <span class="icon">💲</span>
+    <span class="label">Cost</span>
+  </button>
+  <button data-page="recipesPage">
+    <span class="icon">➕</span>
+    <span class="label">Recipes</span>
+  </button>
+</div>
 </body>
 </html>
+
 
 
 
