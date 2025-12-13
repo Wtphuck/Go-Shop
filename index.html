@@ -2070,7 +2070,7 @@ function renderShoppingList() {
     }
   }
 
-  function buildGroceryText() {
+    function buildGroceryText() {
     if (!currentGroceryList || currentGroceryList.length === 0) {
       return "";
     }
@@ -2081,250 +2081,247 @@ function renderShoppingList() {
     return lines.join("\n");
   }
 
-  // Update BOTH top nav and bottom nav buttons
-  document.querySelectorAll(".nav button, .bottom-nav button").forEach(btn => {
-    btn.classList.toggle(
-      "active",
-      btn.getAttribute("data-page") === pageId
-    );
-  });
 
+   <!-- JS continues -->
+  <script>
+  // ... all your previous functions are above this point ...
 
-const PAGE_ORDER = ["planPage", "groceryPage", "shoppingPage", "costPage", "recipesPage"];
+  const PAGE_ORDER = ["planPage", "groceryPage", "shoppingPage", "costPage", "recipesPage"];
 
-function goToRelativePage(offset) {
-  const currentIndex = PAGE_ORDER.indexOf(currentPageId);
-  if (currentIndex === -1) return;
+  function showPage(pageId) {
+    currentPageId = pageId; // remember current page
 
-  const nextIndex = currentIndex + offset;
-  if (nextIndex < 0 || nextIndex >= PAGE_ORDER.length) return;
+    // Switch which page is active
+    document.querySelectorAll(".page").forEach(p => {
+      const isActive = p.id === pageId;
+      p.classList.toggle("active", isActive);
 
-  showPage(PAGE_ORDER[nextIndex]);
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  // Theme
-  initTheme();
-
-  // Nav buttons (top)
-  document.querySelectorAll(".nav button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      showPage(btn.getAttribute("data-page"));
-    });
-  });
-
-  // Nav buttons (bottom)
-  document.querySelectorAll(".bottom-nav button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      showPage(btn.getAttribute("data-page"));
-    });
-  });
-
-  // Quick nav buttons on Meals & Grocery pages
-  const goGroceryBtn = document.getElementById("goGroceryBtn");
-  if (goGroceryBtn) {
-    goGroceryBtn.addEventListener("click", () => showPage("groceryPage"));
-  }
-
-  const goRecipesBtn = document.getElementById("goRecipesBtn");
-  if (goRecipesBtn) {
-    goRecipesBtn.addEventListener("click", () => showPage("recipesPage"));
-  }
-
-  const goCostPageBtn = document.getElementById("goCostPageBtn");
-  if (goCostPageBtn) {
-    goCostPageBtn.addEventListener("click", () => showPage("costPage"));
-  }
-
-  // Diet dropdown
-  renderDietDropdown();
-
-  // Planner buttons
-  const generateBtn = document.getElementById("generateBtn");
-  if (generateBtn) {
-    generateBtn.addEventListener("click", () => {
-      const plan = generateWeeklyPlan();
-      render(plan);
-    });
-  }
-
-  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-  if (clearHistoryBtn) {
-    clearHistoryBtn.addEventListener("click", () => {
-      if (confirm("Clear history and current plan? (Custom recipes stay saved.)")) {
-        localStorage.removeItem(STORAGE_KEYS.history);
-        localStorage.removeItem(STORAGE_KEYS.plan);
-        render(null);
-      }
-    });
-  }
-
-  // Cost estimate
-  const estimateBtn = document.getElementById("estimateBtn");
-  if (estimateBtn) {
-    estimateBtn.addEventListener("click", () => {
-      if (!currentGroceryList || currentGroceryList.length === 0) {
-        alert("Generate a plan first on the Meals page.");
-        return;
-      }
-      const storeId = document.getElementById("storeSelect").value;
-      const store = STORES.find(s => s.id === storeId);
-      const { total, lines } = estimateCost(currentGroceryList, storeId);
-
-      document.getElementById("estimateSummary").textContent =
-        `Estimated cost at ${store.name}: $${total.toFixed(2)}`;
-
-      let html = `
-        <table>
-          <thead>
-            <tr>
-              <th>Ingredient</th>
-              <th>Product</th>
-              <th>Packages</th>
-              <th>Est. Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-      for (const line of lines) {
-        html += `
-          <tr>
-            <td>${line.ingredientName}</td>
-            <td>${line.productName}</td>
-            <td>${line.packages}</td>
-            <td>${line.lineCost === 0 ? "-" : "$" + line.lineCost.toFixed(2)}</td>
-          </tr>
-        `;
-      }
-      html += "</tbody></table>";
-      document.getElementById("costBreakdown").innerHTML = html;
-    });
-  }
-
-  // SMS button
-  const smsBtn = document.getElementById("smsBtn");
-  if (smsBtn) {
-    smsBtn.addEventListener("click", () => {
-      if (!currentGroceryList || currentGroceryList.length === 0) {
-        alert("Generate a plan first so we have a grocery list.");
-        return;
-      }
-      const text = buildGroceryText();
-      if (!text) {
-        alert("Grocery list is empty.");
-        return;
-      }
-      const smsUrl = "sms:&body=" + encodeURIComponent(text);
-      window.location.href = smsUrl;
-    });
-  }
-
-  // Copy list button
-  const copyListBtn = document.getElementById("copyListBtn");
-  if (copyListBtn) {
-    copyListBtn.addEventListener("click", async () => {
-      if (!currentGroceryList || currentGroceryList.length === 0) {
-        alert("Generate a plan first so we have a grocery list.");
-        return;
-      }
-      const text = buildGroceryText();
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("Grocery list copied to clipboard!");
-      } catch (e) {
-        alert("Could not copy automatically. You can still select and copy text from the page.");
-      }
-    });
-  }
-
-  // Theme toggle
-  const themeBtn = document.getElementById("themeToggleBtn");
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      const current = localStorage.getItem(THEME_KEY) || "dark";
-      const next = current === "light" ? "dark" : "light";
-      applyTheme(next);
-    });
-  }
-
-  // Recipe builder events
-  const addIngredientBtn = document.getElementById("addIngredientBtn");
-  if (addIngredientBtn) {
-    addIngredientBtn.addEventListener("click", handleAddIngredient);
-  }
-
-  const saveRecipeBtn = document.getElementById("saveRecipeBtn");
-  if (saveRecipeBtn) {
-    saveRecipeBtn.addEventListener("click", handleSaveRecipe);
-  }
-
-  // Swipe left/right on container (mobile)
-  const swipeTarget = document.querySelector(".container");
-  if (swipeTarget) {
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    swipeTarget.addEventListener("touchstart", e => {
-      if (e.changedTouches && e.changedTouches.length > 0) {
-        touchStartX = e.changedTouches[0].clientX;
+      if (isActive) {
+        // Add slide-in animation class
+        p.classList.add("animating-in");
+        p.addEventListener(
+          "animationend",
+          () => {
+            p.classList.remove("animating-in");
+          },
+          { once: true }
+        );
       }
     });
 
-    swipeTarget.addEventListener("touchend", e => {
-      if (e.changedTouches && e.changedTouches.length > 0) {
-        touchEndX = e.changedTouches[0].clientX;
-        const dx = touchEndX - touchStartX;
-        const THRESHOLD = 50;
-        if (Math.abs(dx) < THRESHOLD) return;
-        if (dx < 0) {
-          goToRelativePage(1);   // swipe left → next page
-        } else {
-          goToRelativePage(-1);  // swipe right → previous page
+    // Update BOTH top nav and bottom nav buttons
+    document.querySelectorAll(".nav button, .bottom-nav button").forEach(btn => {
+      btn.classList.toggle(
+        "active",
+        btn.getAttribute("data-page") === pageId
+      );
+    });
+  }
+
+  function goToRelativePage(offset) {
+    const currentIndex = PAGE_ORDER.indexOf(currentPageId);
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + offset;
+    if (nextIndex < 0 || nextIndex >= PAGE_ORDER.length) return;
+
+    showPage(PAGE_ORDER[nextIndex]);
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    // Theme
+    initTheme();
+
+    // Nav buttons (top)
+    document.querySelectorAll(".nav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        showPage(btn.getAttribute("data-page"));
+      });
+    });
+
+    // Nav buttons (bottom)
+    document.querySelectorAll(".bottom-nav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        showPage(btn.getAttribute("data-page"));
+      });
+    });
+
+    // Quick nav buttons on Meals & Grocery pages
+    const goGroceryBtn = document.getElementById("goGroceryBtn");
+    if (goGroceryBtn) {
+      goGroceryBtn.addEventListener("click", () => showPage("groceryPage"));
+    }
+
+    const goRecipesBtn = document.getElementById("goRecipesBtn");
+    if (goRecipesBtn) {
+      goRecipesBtn.addEventListener("click", () => showPage("recipesPage"));
+    }
+
+    const goCostPageBtn = document.getElementById("goCostPageBtn");
+    if (goCostPageBtn) {
+      goCostPageBtn.addEventListener("click", () => showPage("costPage"));
+    }
+
+    // Diet dropdown
+    renderDietDropdown();
+
+    // Planner buttons
+    const generateBtn = document.getElementById("generateBtn");
+    if (generateBtn) {
+      generateBtn.addEventListener("click", () => {
+        const plan = generateWeeklyPlan();
+        render(plan);
+      });
+    }
+
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+    if (clearHistoryBtn) {
+      clearHistoryBtn.addEventListener("click", () => {
+        if (confirm("Clear history and current plan? (Custom recipes stay saved.)")) {
+          localStorage.removeItem(STORAGE_KEYS.history);
+          localStorage.removeItem(STORAGE_KEYS.plan);
+          render(null);
         }
-      }
-    });
-  }
+      });
+    }
 
-  // Initial setup
-  renderStoreDropdown();
-  renderDraftIngredients();
-  renderUserRecipesList();
+    // Cost estimate
+    const estimateBtn = document.getElementById("estimateBtn");
+    if (estimateBtn) {
+      estimateBtn.addEventListener("click", () => {
+        if (!currentGroceryList || currentGroceryList.length === 0) {
+          alert("Generate a plan first on the Meals page.");
+          return;
+        }
+        const storeId = document.getElementById("storeSelect").value;
+        const store = STORES.find(s => s.id === storeId);
+        const { total, lines } = estimateCost(currentGroceryList, storeId);
 
-  const existingPlan = loadPlan();
-  render(existingPlan);
-});
+        document.getElementById("estimateSummary").textContent =
+          `Estimated cost at ${store.name}: $${total.toFixed(2)}`;
 
+        let html = `
+          <table>
+            <thead>
+              <tr>
+                <th>Ingredient</th>
+                <th>Product</th>
+                <th>Packages</th>
+                <th>Est. Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        for (const line of lines) {
+          html += `
+            <tr>
+              <td>${line.ingredientName}</td>
+              <td>${line.productName}</td>
+              <td>${line.packages}</td>
+              <td>${line.lineCost === 0 ? "-" : "$" + line.lineCost.toFixed(2)}</td>
+            </tr>
+          `;
+        }
+        html += "</tbody></table>";
+        document.getElementById("costBreakdown").innerHTML = html;
+      });
+    }
 
-</script>
-  <!-- Bottom navigation for mobile -->
-<div class="bottom-nav">
-  <button data-page="planPage" class="active">
-    <span class="icon">🍽️</span>
-    <span class="label">Meals</span>
-  </button>
-  <button data-page="groceryPage">
-    <span class="icon">🛒</span>
-    <span class="label">Grocery</span>
-  </button>
-  <button data-page="shoppingPage">
-    <span class="icon">✅</span>
-    <span class="label">Shop</span>
-  </button>
-  <button data-page="costPage">
-    <span class="icon">💲</span>
-    <span class="label">Cost</span>
-  </button>
-  <button data-page="recipesPage">
-    <span class="icon">➕</span>
-    <span class="label">Recipes</span>
-  </button>
-</div>
+    // SMS button
+    const smsBtn = document.getElementById("smsBtn");
+    if (smsBtn) {
+      smsBtn.addEventListener("click", () => {
+        if (!currentGroceryList || currentGroceryList.length === 0) {
+          alert("Generate a plan first so we have a grocery list.");
+          return;
+        }
+        const text = buildGroceryText();
+        if (!text) {
+          alert("Grocery list is empty.");
+          return;
+        }
+        const smsUrl = "sms:&body=" + encodeURIComponent(text);
+        window.location.href = smsUrl;
+      });
+    }
 
+    // Copy list button
+    const copyListBtn = document.getElementById("copyListBtn");
+    if (copyListBtn) {
+      copyListBtn.addEventListener("click", async () => {
+        if (!currentGroceryList || currentGroceryList.length === 0) {
+          alert("Generate a plan first so we have a grocery list.");
+          return;
+        }
+        const text = buildGroceryText();
+        try {
+          await navigator.clipboard.writeText(text);
+          alert("Grocery list copied to clipboard!");
+        } catch (e) {
+          alert("Could not copy automatically. You can still select and copy text from the page.");
+        }
+      });
+    }
+
+    // Theme toggle
+    const themeBtn = document.getElementById("themeToggleBtn");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = localStorage.getItem(THEME_KEY) || "dark";
+        const next = current === "light" ? "dark" : "light";
+        applyTheme(next);
+      });
+    }
+
+    // Recipe builder events
+    const addIngredientBtn = document.getElementById("addIngredientBtn");
+    if (addIngredientBtn) {
+      addIngredientBtn.addEventListener("click", handleAddIngredient);
+    }
+
+    const saveRecipeBtn = document.getElementById("saveRecipeBtn");
+    if (saveRecipeBtn) {
+      saveRecipeBtn.addEventListener("click", handleSaveRecipe);
+    }
+
+    // Swipe left/right on container (mobile)
+    const swipeTarget = document.querySelector(".container");
+    if (swipeTarget) {
+      let touchStartX = 0;
+      let touchEndX = 0;
+
+      swipeTarget.addEventListener("touchstart", e => {
+        if (e.changedTouches && e.changedTouches.length > 0) {
+          touchStartX = e.changedTouches[0].clientX;
+        }
+      });
+
+      swipeTarget.addEventListener("touchend", e => {
+        if (e.changedTouches && e.changedTouches.length > 0) {
+          touchEndX = e.changedTouches[0].clientX;
+          const dx = touchEndX - touchStartX;
+          const THRESHOLD = 50;
+          if (Math.abs(dx) < THRESHOLD) return;
+          if (dx < 0) {
+            goToRelativePage(1);   // swipe left → next page
+          } else {
+            goToRelativePage(-1);  // swipe right → previous page
+          }
+        }
+      });
+    }
+
+    // Initial setup
+    renderStoreDropdown();
+    renderDraftIngredients();
+    renderUserRecipesList();
+
+    const existingPlan = loadPlan();
+    render(existingPlan);
+  });
+  </script>
 </body>
 </html>
-
-
-
 
 
 
